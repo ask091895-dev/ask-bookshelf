@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>キッズ学習ゲームプラットフォーム</title>
+  <style>
+    /* 全体共通設定 */
+    * {
+      box-sizing: border-box;
+      touch-action: manipulation;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    body {
+      margin: 0;
+      padding: 10px;
+      font-family: "Hiragino Sans", "Meiryo", "Helvetica Neue", Arial, sans-serif;
+      background-color: #f0f4f8;
+      color: #2c3e50;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    /* 各画面の制御 */
+    .screen {
+      display: none;
+      width: 100%;
+      max-width: 650px;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .screen.active {
+      display: flex;
+    }
+
+    /* --- プラットフォーム（ホーム画面）デザイン --- */
+    .home-title {
+      font-size: 28px;
+      color: #2c3e50;
+      margin: 20px 0 10px 0;
+      text-align: center;
+    }
+
+    .home-subtitle {
+      font-size: 16px;
+      color: #7f8c8d;
+      margin-bottom: 30px;
+      text-align: center;
+    }
+
+    .game-menu {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      width: 100%;
+      max-width: 400px;
+    }
+
+    .menu-card {
+      background: #ffffff;
+      border-radius: 16px;
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+      cursor: pointer;
+      border: 3px solid transparent;
+      transition: transform 0.1s, border-color 0.2s;
+    }
+
+    .menu-card:active {
+      transform: scale(0.98);
+    }
+
+    .menu-card.game1 { border-color: #3498db; }
+    .menu-card.game2 { border-color: #e67e22; }
+    .menu-card.game3 { border-color: #2ecc71; }
+
+    .menu-icon {
+      font-size: 18px;
+      width: 60px;
+      height: 60px;
+      flex-shrink: 0;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: bold;
+      padding: 4px;
+      text-align: center;
+      word-break: break-all;
+      overflow: hidden;
+    }
+
+    .game1 .menu-icon { background-color: #3498db; }
+    .game2 .menu-icon { background-color: #e67e22; }
+    .game3 .menu-icon { background-color: #2ecc71; }
+
+    .menu-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .menu-info h2 {
+      margin: 0 0 5px 0;
+      font-size: 20px;
+    }
+
+    .menu-info p {
+      margin: 0;
+      font-size: 14px;
+      color: #666;
+    }
+
+    /* --- ゲーム共通ヘッダー（戻るボタンなど） --- */
+    .game-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+      margin-bottom: 10px;
+    }
+
+    .btn-back {
+      background-color: #7f8c8d;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-weight: bold;
+      font-size: 14px;
+      cursor: pointer;
+      box-shadow: 0 3px 0 #5f6c6d;
+    }
+
+    .btn-back:active {
+      box-shadow: none;
+      transform: translateY(3px);
+    }
+
+    .game-title {
+      margin: 0;
+      font-size: 20px;
+    }
+
+    /* --- 各ゲーム共通パーツ --- */
+    .info-panel {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+      background: #ffffff;
+      padding: 10px 16px;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.08);
+      margin-bottom: 10px;
+      font-size: 16px;
+      font-weight: bold;
+    }
+
+    .target-box {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .timer {
+      color: #2980b9;
+      font-size: 18px;
+    }
+
+    .game-board {
+      position: relative;
+      width: 100%;
+      height: 500px;
+      background-color: #ffffff;
+      border: 4px solid #bdc3c7;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
+    }
+
+    .overlay {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(255, 255, 255, 0.96);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .btn-main {
+      font-size: 22px;
+      padding: 12px 35px;
+      background-color: #2ecc71;
+      color: white;
+      border: none;
+      border-radius: 30px;
+      box-shadow: 0 5px 0 #27ae60;
+      cursor: pointer;
+      font-weight: bold;
+      margin-top: 15px;
+    }
+
+    .btn-main:active {
+      box-shadow: none;
+      transform: translateY(5px);
+    }
+
+    .history {
+      margin-top: 10px;
+      font-size: 16px;
+      text-align: left;
+      background: #ecf0f1;
+      padding: 10px 20px;
+      border-radius: 8px;
+      line-height: 1.5;
+    }
+
+    .hidden { display: none !important; }
+
+    @keyframes wrong-flash {
+      0% { background-color: #fadbd8; }
+      100% { background-color: #ffffff; }
+    }
+    .wrong { animation: wrong-flash 0.3s ease-in-out; }
+
+    /* --- ゲーム1 (すうじ) 固有スタイル --- */
+    .g1-target-num { color: #e67e22; font-size: 22px; }
+    .g1-btn {
+      position: absolute;
+      display: flex; align-items: center; justify-content: center;
+      background-color: #3498db; color: #ffffff; font-weight: bold;
+      border-radius: 50%; border: 3px solid #2980b9; box-shadow: 0 4px 0 #1c5980;
+      cursor: pointer; transition: transform 0.1s;
+    }
+    .g1-btn:active { transform: scale(0.95); }
+    .g1-size-small { width: 45px; height: 45px; font-size: 20px; }
+    .g1-size-medium { width: 65px; height: 65px; font-size: 30px; }
+    .g1-size-large { width: 85px; height: 85px; font-size: 42px; }
+
+    /* --- ゲーム2 (アルファベット) 固有スタイル --- */
+    .g2-target-char {
+      color: #d35400; font-size: 28px; background-color: #fef5e7;
+      padding: 0 14px; border-radius: 8px; border: 3px solid #e67e22; line-height: 1.2;
+    }
+    .g2-btn {
+      position: absolute; display: flex; align-items: center; justify-content: center;
+      background-color: #2980b9; color: #ffffff; font-weight: bold;
+      border-radius: 50%; border: 3px solid #1a5276; box-shadow: 0 4px 0 #154360;
+      cursor: pointer; transition: transform 0.08s;
+    }
+    .g2-btn:active { transform: scale(0.92); }
+    .g2-size-small { width: 48px; height: 48px; font-size: 24px; }
+    .g2-size-medium { width: 64px; height: 64px; font-size: 34px; }
+    .g2-size-large { width: 80px; height: 80px; font-size: 46px; }
+    .mode-select { display: flex; gap: 15px; margin: 15px 0; }
+    .mode-btn {
+      padding: 10px 20px; font-size: 18px; font-weight: bold;
+      border: 3px solid #3498db; border-radius: 12px; background-color: #fff; color: #3498db; cursor: pointer;
+    }
+    .mode-btn.selected { background-color: #3498db; color: #fff; }
+
+    /* --- ゲーム3 (ひらがな) 固有スタイル --- */
+    .g3-target-char {
+      font-size: 28px; padding: 0 14px; border-radius: 8px; border: 3px solid rgba(0,0,0,0.2);
+      color: #ffffff; line-height: 1.2; text-shadow: 1px 1px 2px rgba(0,0,0,0.3); transition: background-color 0.3s;
+    }
+    .g3-btn {
+      position: absolute; display: flex; align-items: center; justify-content: center;
+      color: #ffffff; font-weight: bold; border-radius: 50%;
+      border: 3px solid rgba(0,0,0,0.2); box-shadow: 0 3px 0 rgba(0,0,0,0.25);
+      cursor: pointer; text-shadow: 1px 1px 2px rgba(0,0,0,0.3); transition: transform 0.08s;
+    }
+    .g3-btn:active { transform: scale(0.92); }
+    .row-a   { background-color: #e74c3c; }
+    .row-ka  { background-color: #e67e22; }
+    .row-sa  { background-color: #f1c40f; color: #333; text-shadow: none; }
+    .row-ta  { background-color: #2ecc71; }
+    .row-na  { background-color: #1abc9c; }
+    .row-ha  { background-color: #3498db; }
+    .row-ma  { background-color: #9b59b6; }
+    .row-ya  { background-color: #e84393; }
+    .row-ra  { background-color: #00cec9; }
+    .row-wa  { background-color: #6c5ce7; }
+    .row-nn  { background-color: #2d3436; }
+  </style>
+</head>
+<body>
+
+  <!-- ==================== HOME 画面 ==================== -->
+  <div id="screen-home" class="screen active">
+    <h1 class="home-title">わくわくさがしゲーム</h1>
+    <div class="home-subtitle">あそびたいゲームを えらんでね！</div>
+    
+    <div class="game-menu">
+      <div class="menu-card game1" onclick="navigateTo('screen-game1')">
+        <div class="menu-icon">123</div>
+        <div class="menu-info">
+          <h2>すうじさがし</h2>
+          <p>1から20までの すうじを じゅんばんに おそう！</p>
+        </div>
+      </div>
+
+      <div class="menu-card game2" onclick="navigateTo('screen-game2')">
+        <div class="menu-icon">ABC</div>
+        <div class="menu-info">
+          <h2>アルファベットさがし</h2>
+          <p>A〜Zの アルファベットを さがして おそう！</p>
+        </div>
+      </div>
+
+      <div class="menu-card game3" onclick="navigateTo('screen-game3')">
+        <div class="menu-icon">あいう</div>
+        <div class="menu-info">
+          <h2>ひらがなマスター</h2>
+          <p>「あ」から「ん」まで じゅんばんに タッチ！</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ==================== GAME 1: すうじさがし ==================== -->
+  <div id="screen-game1" class="screen">
+    <div class="game-header">
+      <button class="btn-back" onclick="goToHome()">◀ ゲームせんたくへ</button>
+      <h1 class="game-title">すうじさがし (1〜20)</h1>
+      <div style="width: 100px;"></div><!-- レイアウト調整用バランス -->
+    </div>
+
+    <div class="info-panel">
+      <div>チャレンジ: <span id="g1-attempt">1</span> / 3</div>
+      <div>つぎのすうじ: <span id="g1-target" class="g1-target-num">1</span></div>
+      <div class="timer"><span id="g1-timer">0.0</span>秒</div>
+    </div>
+
+    <div class="game-board" id="g1-board">
+      <div id="g1-start-overlay" class="overlay">
+        <h2>1から20まで<br>じゅんばんに おしてね！</h2>
+        <p style="font-size:15px; color:#666;">3回チャレンジして 平均タイムをはかるよ</p>
+        <button class="btn-main" onclick="g1_startChallenge()">スタート！</button>
+      </div>
+      <div id="g1-intermission-overlay" class="overlay hidden">
+        <h2>クリア！</h2>
+        <p style="font-size:20px;">タイム: <span id="g1-last-time" style="color:#2980b9; font-weight:bold;">0.0</span>秒</p>
+        <button class="btn-main" onclick="g1_nextAttempt()">つぎへ進む</button>
+      </div>
+      <div id="g1-result-overlay" class="overlay hidden">
+        <h2 style="color:#e67e22; font-size: 26px; margin:0;">ぜんぶクリア！</h2>
+        <div class="history" id="g1-history-list"></div>
+        <h3 style="font-size: 20px; margin: 10px 0;">へいきんタイム<br><span id="g1-avg-time" style="color:#e74c3c; font-size:36px;">0.0</span> 秒</h3>
+        <button class="btn-main" onclick="g1_resetAll()">もういちど遊ぶ</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ==================== GAME 2: アルファベットさがし ==================== -->
+  <div id="screen-game2" class="screen">
+    <div class="game-header">
+      <button class="btn-back" onclick="goToHome()">◀ ゲームせんたくへ</button>
+      <h1 class="game-title">アルファベットさがし</h1>
+      <div style="width: 100px;"></div>
+    </div>
+
+    <div class="info-panel">
+      <div>回数: <span id="g2-attempt">1</span> / 3</div>
+      <div class="target-box">
+        <span>つぎ:</span>
+        <span id="g2-target" class="g2-target-char">A</span>
+      </div>
+      <div class="timer"><span id="g2-timer">0.0</span>秒</div>
+    </div>
+
+    <div class="game-board" id="g2-board">
+      <div id="g2-start-overlay" class="overlay">
+        <h2 style="margin:0;">モードを えらんでね</h2>
+        <div class="mode-select">
+          <button class="mode-btn selected" id="g2-btn-upper" onclick="g2_selectMode('uppercase')">大文字<br>(A〜Z)</button>
+          <button class="mode-btn" id="g2-btn-lower" onclick="g2_selectMode('lowercase')">小文字<br>(a〜z)</button>
+        </div>
+        <p style="font-size:15px; color:#555; margin:0 0 10px 0;">3回チャレンジして 平均タイムを はかるよ！</p>
+        <button class="btn-main" onclick="g2_startChallenge()">スタート！</button>
+      </div>
+      <div id="g2-intermission-overlay" class="overlay hidden">
+        <h2>クリア！</h2>
+        <p style="font-size:20px;">タイム: <span id="g2-last-time" style="color:#2980b9; font-weight:bold;">0.0</span> 秒</p>
+        <button class="btn-main" onclick="g2_nextAttempt()">つぎへ すすむ</button>
+      </div>
+      <div id="g2-result-overlay" class="overlay hidden">
+        <h2 style="color:#e67e22; font-size: 26px; margin:0;">ぜんぶクリア！</h2>
+        <div class="history" id="g2-history-list"></div>
+        <h3 style="font-size: 20px; margin: 10px 0;">へいきんタイム<br><span id="g2-avg-time" style="color:#e74c3c; font-size:36px;">0.0</span> 秒</h3>
+        <button class="btn-main" onclick="g2_resetAll()">もういちど 遊ぶ</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ==================== GAME 3: ひらがなマスター ==================== -->
+  <div id="screen-game3" class="screen">
+    <div class="game-header">
+      <button class="btn-back" onclick="goToHome()">◀ ゲームせんたくへ</button>
+      <h1 class="game-title">ひらがなマスター</h1>
+      <div style="width: 100px;"></div>
+    </div>
+
+    <div class="info-panel">
+      <div>かいすう: <span id="g3-attempt">1</span> / 3</div>
+      <div class="target-box">
+        <span>つぎ:</span>
+        <span id="g3-target" class="g3-target-char row-a">あ</span>
+      </div>
+      <div class="timer"><span id="g3-timer">0.0</span>びょう</div>
+    </div>
+
+    <div class="game-board" id="g3-board">
+      <div id="g3-start-overlay" class="overlay">
+        <h2 style="margin:0 0 10px 0; font-size:22px;">「あ」から「ん」まで<br>じゅんばんに おそう！</h2>
+        <p style="font-size:14px; color:#555; line-height: 1.4;">ぎょうごとに いろが ちがうよ。<br>3かい チャレンジして へいきんタイムを はかるよ！</p>
+        <button class="btn-main" onclick="g3_startChallenge()">スタート！</button>
+      </div>
+      <div id="g3-intermission-overlay" class="overlay hidden">
+        <h2 style="font-size:26px; color:#27ae60;">クリア！</h2>
+        <p style="font-size:20px;">タイム: <span id="g3-last-time" style="color:#2980b9; font-weight:bold;">0.0</span> びょう</p>
+        <button class="btn-main" onclick="g3_nextAttempt()">つぎへ すすむ</button>
+      </div>
+      <div id="g3-result-overlay" class="overlay hidden">
+        <h2 style="color:#e67e22; font-size: 26px; margin:0;">ぜんぶクリア！</h2>
+        <div class="history" id="g3-history-list"></div>
+        <h3 style="font-size: 20px; margin: 10px 0;">へいきんタイム<br><span id="g3-avg-time" style="color:#e74c3c; font-size:36px;">0.0</span> びょう</h3>
+        <button class="btn-main" onclick="g3_resetAll()">もういちど あそぶ</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ==================== JavaScript ロジック ==================== -->
+  <script>
+    /* --- 画面遷移制御 --- */
+    function navigateTo(screenId) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById(screenId).classList.add('active');
+    }
+
+    function goToHome() {
+      // 進行中のタイマーを停止して初期化
+      g1_stopTimer();
+      g2_stopTimer();
+      g3_stopTimer();
+      
+      g1_resetAll();
+      g2_resetAll();
+      g3_resetAll();
+
+      navigateTo('screen-home');
+    }
+
+    /* ===================================================
+       GAME 1: すうじさがし
+    =================================================== */
+    const G1_MAX = 20;
+    const G1_TOTAL = 3;
+    let g1_attempt = 1, g1_target = 1, g1_startTime = 0, g1_timerInt = null, g1_times = [];
+
+    const g1_board = document.getElementById('g1-board');
+    const g1_targetDisp = document.getElementById('g1-target');
+    const g1_timerDisp = document.getElementById('g1-timer');
+    const g1_attemptDisp = document.getElementById('g1-attempt');
+
+    function g1_startChallenge() {
+      document.getElementById('g1-start-overlay').classList.add('hidden');
+      g1_setupBoard();
+      g1_startTimer();
+    }
+
+    function g1_setupBoard() {
+      g1_board.querySelectorAll('.g1-btn').forEach(b => b.remove());
+      g1_target = 1;
+      g1_targetDisp.textContent = g1_target;
+
+      const w = g1_board.clientWidth;
+      const h = g1_board.clientHeight;
+      const sizes = ['g1-size-small', 'g1-size-medium', 'g1-size-large'];
+      const rects = [];
+
+      for (let i = 1; i <= G1_MAX; i++) {
+        const btn = document.createElement('div');
+        btn.className = 'g1-btn ' + sizes[Math.floor(Math.random() * sizes.length)];
+        btn.textContent = i;
+        g1_board.appendChild(btn);
+
+        const bw = btn.offsetWidth, bh = btn.offsetHeight;
+        let x, y, col, tries = 0;
+        do {
+          col = false;
+          x = Math.random() * (w - bw - 20) + 10;
+          y = Math.random() * (h - bh - 20) + 10;
+          for (let r of rects) {
+            if (x < r.x + r.w + 5 && x + bw + 5 > r.x && y < r.y + r.h + 5 && y + bh + 5 > r.y) {
+              col = true; break;
+            }
+          }
+          tries++;
+        } while (col && tries < 100);
+
+        btn.style.left = `${x}px`;
+        btn.style.top = `${y}px`;
+        rects.push({ x, y, w: bw, h: bh });
+
+        btn.addEventListener('pointerdown', (e) => {
+          e.preventDefault();
+          if (i === g1_target) {
+            btn.remove();
+            g1_target++;
+            if (g1_target > G1_MAX) g1_finishAttempt();
+            else g1_targetDisp.textContent = g1_target;
+          } else {
+            g1_board.classList.remove('wrong'); void g1_board.offsetWidth; g1_board.classList.add('wrong');
+            if (navigator.vibrate) navigator.vibrate(100);
+          }
+        });
+      }
+    }
+
+    function g1_startTimer() {
+      g1_startTime = Date.now();
+      g1_timerInt = setInterval(() => {
+        g1_timerDisp.textContent = ((Date.now() - g1_startTime) / 1000).toFixed(1);
+      }, 100);
+    }
+
+    function g1_stopTimer() {
+      clearInterval(g1_timerInt);
+      return ((Date.now() - g1_startTime) / 1000);
+    }
+
+    function g1_finishAttempt() {
+      const t = g1_stopTimer();
+      g1_timerDisp.textContent = t.toFixed(1);
+      g1_times.push(t);
+
+      if (g1_attempt < G1_TOTAL) {
+        document.getElementById('g1-last-time').textContent = t.toFixed(1);
+        document.getElementById('g1-intermission-overlay').classList.remove('hidden');
+      } else {
+        const sum = g1_times.reduce((a, b) => a + b, 0);
+        let h = '';
+        g1_times.forEach((time, idx) => h += `<div>${idx + 1}回目: <strong>${time.toFixed(1)}</strong> 秒</div>`);
+        document.getElementById('g1-history-list').innerHTML = h;
+        document.getElementById('g1-avg-time').textContent = (sum / g1_times.length).toFixed(1);
+        document.getElementById('g1-result-overlay').classList.remove('hidden');
+      }
+    }
+
+    function g1_nextAttempt() {
+      g1_attempt++;
+      g1_attemptDisp.textContent = g1_attempt;
+      document.getElementById('g1-intermission-overlay').classList.add('hidden');
+      g1_setupBoard();
+      g1_startTimer();
+    }
+
+    function g1_resetAll() {
+      g1_attempt = 1; g1_times = [];
+      g1_attemptDisp.textContent = 1;
+      g1_timerDisp.textContent = "0.0";
+      g1_targetDisp.textContent = "1";
+      document.getElementById('g1-result-overlay').classList.add('hidden');
+      document.getElementById('g1-intermission-overlay').classList.add('hidden');
+      document.getElementById('g1-start-overlay').classList.remove('hidden');
+      g1_board.querySelectorAll('.g1-btn').forEach(b => b.remove());
+    }
+
+
+    /* ===================================================
+       GAME 2: アルファベットさがし
+    =================================================== */
+    const G2_TOTAL = 3;
+    const UPPERCASE = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+    const LOWERCASE = "abcdefghijklmnopqrstuvwxyz".split("");
+    let g2_list = UPPERCASE, g2_attempt = 1, g2_targetIdx = 0, g2_startTime = 0, g2_timerInt = null, g2_times = [];
+
+    const g2_board = document.getElementById('g2-board');
+    const g2_targetDisp = document.getElementById('g2-target');
+    const g2_timerDisp = document.getElementById('g2-timer');
+    const g2_attemptDisp = document.getElementById('g2-attempt');
+
+    function g2_selectMode(mode) {
+      document.getElementById('g2-btn-upper').classList.toggle('selected', mode === 'uppercase');
+      document.getElementById('g2-btn-lower').classList.toggle('selected', mode === 'lowercase');
+      g2_list = (mode === 'uppercase') ? UPPERCASE : LOWERCASE;
+    }
+
+    function g2_startChallenge() {
+      document.getElementById('g2-start-overlay').classList.add('hidden');
+      g2_setupBoard();
+      g2_startTimer();
+    }
+
+    function g2_setupBoard() {
+      g2_board.querySelectorAll('.g2-btn').forEach(b => b.remove());
+      g2_targetIdx = 0;
+      g2_targetDisp.textContent = g2_list[g2_targetIdx];
+
+      const w = g2_board.clientWidth, h = g2_board.clientHeight;
+      const sizes = [{ class: 'g2-size-small', r: 24 }, { class: 'g2-size-medium', r: 32 }, { class: 'g2-size-large', r: 40 }];
+      const circles = [];
+
+      for (let i = 0; i < g2_list.length; i++) {
+        const char = g2_list[i];
+        const btn = document.createElement('div');
+        btn.className = 'g2-btn';
+        btn.textContent = char;
+
+        const size = sizes[Math.floor(Math.random() * sizes.length)];
+        btn.classList.add(size.class);
+
+        let x, y, cx, cy, tries = 0, placed = false;
+        while (tries < 500) {
+          x = Math.random() * (w - size.r * 2 - 16) + 8;
+          y = Math.random() * (h - size.r * 2 - 16) + 8;
+          cx = x + size.r; cy = y + size.r;
+          let overlap = false;
+          for (let c of circles) {
+            if (Math.hypot(cx - c.x, cy - c.y) < (size.r + c.r + 6)) { overlap = true; break; }
+          }
+          if (!overlap) { placed = true; break; }
+          tries++;
+        }
+        if (!placed) { x = Math.random() * (w - size.r * 2 - 16) + 8; y = Math.random() * (h - size.r * 2 - 16) + 8; cx = x + size.r; cy = y + size.r; }
+
+        circles.push({ x: cx, y: cy, r: size.r });
+        btn.style.left = `${x}px`; btn.style.top = `${y}px`;
+
+        btn.addEventListener('pointerdown', (e) => {
+          e.preventDefault();
+          if (char === g2_list[g2_targetIdx]) {
+            btn.remove();
+            g2_targetIdx++;
+            if (g2_targetIdx >= g2_list.length) g2_finishAttempt();
+            else g2_targetDisp.textContent = g2_list[g2_targetIdx];
+          } else {
+            g2_board.classList.remove('wrong'); void g2_board.offsetWidth; g2_board.classList.add('wrong');
+            if (navigator.vibrate) navigator.vibrate(100);
+          }
+        });
+
+        g2_board.appendChild(btn);
+      }
+    }
+
+    function g2_startTimer() {
+      g2_startTime = Date.now();
+      g2_timerInt = setInterval(() => {
+        g2_timerDisp.textContent = ((Date.now() - g2_startTime) / 1000).toFixed(1);
+      }, 100);
+    }
+
+    function g2_stopTimer() {
+      clearInterval(g2_timerInt);
+      return ((Date.now() - g2_startTime) / 1000);
+    }
+
+    function g2_finishAttempt() {
+      const t = g2_stopTimer();
+      g2_timerDisp.textContent = t.toFixed(1);
+      g2_times.push(t);
+
+      if (g2_attempt < G2_TOTAL) {
+        document.getElementById('g2-last-time').textContent = t.toFixed(1);
+        document.getElementById('g2-intermission-overlay').classList.remove('hidden');
+      } else {
+        const sum = g2_times.reduce((a, b) => a + b, 0);
+        let h = '';
+        g2_times.forEach((time, idx) => h += `<div>${idx + 1}回目: <strong>${time.toFixed(1)}</strong> 秒</div>`);
+        document.getElementById('g2-history-list').innerHTML = h;
+        document.getElementById('g2-avg-time').textContent = (sum / g2_times.length).toFixed(1);
+        document.getElementById('g2-result-overlay').classList.remove('hidden');
+      }
+    }
+
+    function g2_nextAttempt() {
+      g2_attempt++;
+      g2_attemptDisp.textContent = g2_attempt;
+      document.getElementById('g2-intermission-overlay').classList.add('hidden');
+      g2_setupBoard();
+      g2_startTimer();
+    }
+
+    function g2_resetAll() {
+      g2_attempt = 1; g2_times = [];
+      g2_attemptDisp.textContent = 1;
+      g2_timerDisp.textContent = "0.0";
+      document.getElementById('g2-result-overlay').classList.add('hidden');
+      document.getElementById('g2-intermission-overlay').classList.add('hidden');
+      document.getElementById('g2-start-overlay').classList.remove('hidden');
+      g2_board.querySelectorAll('.g2-btn').forEach(b => b.remove());
+    }
+
+
+    /* ===================================================
+       GAME 3: ひらがなマスター
+    =================================================== */
+    const G3_TOTAL = 3;
+    const HIRAGANA_DATA = [
+      { char: "あ", rowClass: "row-a" },  { char: "い", rowClass: "row-a" },  { char: "う", rowClass: "row-a" },  { char: "え", rowClass: "row-a" },  { char: "お", rowClass: "row-a" },
+      { char: "か", rowClass: "row-ka" }, { char: "き", rowClass: "row-ka" }, { char: "く", rowClass: "row-ka" }, { char: "け", rowClass: "row-ka" }, { char: "こ", rowClass: "row-ka" },
+      { char: "さ", rowClass: "row-sa" }, { char: "し", rowClass: "row-sa" }, { char: "す", rowClass: "row-sa" }, { char: "せ", rowClass: "row-sa" }, { char: "そ", rowClass: "row-sa" },
+      { char: "た", rowClass: "row-ta" }, { char: "ち", rowClass: "row-ta" }, { char: "つ", rowClass: "row-ta" }, { char: "て", rowClass: "row-ta" }, { char: "と", rowClass: "row-ta" },
+      { char: "な", rowClass: "row-na" }, { char: "に", rowClass: "row-na" }, { char: "ぬ", rowClass: "row-na" }, { char: "ね", rowClass: "row-na" }, { char: "の", rowClass: "row-na" },
+      { char: "は", rowClass: "row-ha" }, { char: "ひ", rowClass: "row-ha" }, { char: "ふ", rowClass: "row-ha" }, { char: "へ", rowClass: "row-ha" }, { char: "ほ", rowClass: "row-ha" },
+      { char: "ま", rowClass: "row-ma" }, { char: "み", rowClass: "row-ma" }, { char: "む", rowClass: "row-ma" }, { char: "め", rowClass: "row-ma" }, { char: "も", rowClass: "row-ma" },
+      { char: "や", rowClass: "row-ya" }, { char: "ゆ", rowClass: "row-ya" }, { char: "よ", rowClass: "row-ya" },
+      { char: "ら", rowClass: "row-ra" }, { char: "り", rowClass: "row-ra" }, { char: "る", rowClass: "row-ra" }, { char: "れ", rowClass: "row-ra" }, { char: "ろ", rowClass: "row-ra" },
+      { char: "わ", rowClass: "row-wa" }, { char: "を", rowClass: "row-wa" },
+      { char: "ん", rowClass: "row-nn" }
+    ];
+
+    let g3_attempt = 1, g3_targetIdx = 0, g3_startTime = 0, g3_timerInt = null, g3_times = [];
+
+    const g3_board = document.getElementById('g3-board');
+    const g3_targetDisp = document.getElementById('g3-target');
+    const g3_timerDisp = document.getElementById('g3-timer');
+    const g3_attemptDisp = document.getElementById('g3-attempt');
+
+    function g3_startChallenge() {
+      document.getElementById('g3-start-overlay').classList.add('hidden');
+      g3_setupBoard();
+      g3_startTimer();
+    }
+
+    function g3_updateTargetDisplay() {
+      const data = HIRAGANA_DATA[g3_targetIdx];
+      g3_targetDisp.textContent = data.char;
+      g3_targetDisp.className = "g3-target-char " + data.rowClass;
+    }
+
+    function g3_setupBoard() {
+      g3_board.querySelectorAll('.g3-btn').forEach(b => b.remove());
+      g3_targetIdx = 0;
+      g3_updateTargetDisplay();
+
+      const w = g3_board.clientWidth, h = g3_board.clientHeight;
+      const baseR = Math.max(16, Math.min(24, Math.floor(Math.sqrt((w * h) / 46 / Math.PI) * 0.7)));
+      const circles = [];
+
+      for (let i = 0; i < HIRAGANA_DATA.length; i++) {
+        const data = HIRAGANA_DATA[i];
+        const btn = document.createElement('div');
+        btn.className = `g3-btn ${data.rowClass}`;
+        btn.textContent = data.char;
+
+        const mults = [0.85, 1.0, 1.2];
+        const mult = mults[Math.floor(Math.random() * mults.length)];
+        const r = Math.round(baseR * mult);
+        const dia = r * 2;
+
+        btn.style.width = `${dia}px`;
+        btn.style.height = `${dia}px`;
+        btn.style.fontSize = `${Math.round(r * 1.1)}px`;
+
+        let x, y, cx, cy, tries = 0, placed = false;
+        while (tries < 600) {
+          x = Math.random() * (w - dia - 8) + 4;
+          y = Math.random() * (h - dia - 8) + 4;
+          cx = x + r; cy = y + r;
+          let overlap = false;
+          for (let c of circles) {
+            if (Math.hypot(cx - c.x, cy - c.y) < (r + c.r + 3)) { overlap = true; break; }
+          }
+          if (!overlap) { placed = true; break; }
+          tries++;
+        }
+        if (!placed) { x = Math.random() * (w - dia - 8) + 4; y = Math.random() * (h - dia - 8) + 4; cx = x + r; cy = y + r; }
+
+        circles.push({ x: cx, y: cy, r: r });
+        btn.style.left = `${x}px`; btn.style.top = `${y}px`;
+
+        btn.addEventListener('pointerdown', (e) => {
+          e.preventDefault();
+          if (i === g3_targetIdx) {
+            btn.remove();
+            g3_targetIdx++;
+            if (g3_targetIdx >= HIRAGANA_DATA.length) g3_finishAttempt();
+            else g3_updateTargetDisplay();
+          } else {
+            g3_board.classList.remove('wrong'); void g3_board.offsetWidth; g3_board.classList.add('wrong');
+            if (navigator.vibrate) navigator.vibrate(100);
+          }
+        });
+
+        g3_board.appendChild(btn);
+      }
+    }
+
+    function g3_startTimer() {
+      g3_startTime = Date.now();
+      g3_timerInt = setInterval(() => {
+        g3_timerDisp.textContent = ((Date.now() - g3_startTime) / 1000).toFixed(1);
+      }, 100);
+    }
+
+    function g3_stopTimer() {
+      clearInterval(g3_timerInt);
+      return ((Date.now() - g3_startTime) / 1000);
+    }
+
+    function g3_finishAttempt() {
+      const t = g3_stopTimer();
+      g3_timerDisp.textContent = t.toFixed(1);
+      g3_times.push(t);
+
+      if (g3_attempt < G3_TOTAL) {
+        document.getElementById('g3-last-time').textContent = t.toFixed(1);
+        document.getElementById('g3-intermission-overlay').classList.remove('hidden');
+      } else {
+        const sum = g3_times.reduce((a, b) => a + b, 0);
+        let h = '';
+        g3_times.forEach((time, idx) => h += `<div>${idx + 1}かいめ: <strong>${time.toFixed(1)}</strong> びょう</div>`);
+        document.getElementById('g3-history-list').innerHTML = h;
+        document.getElementById('g3-avg-time').textContent = (sum / g3_times.length).toFixed(1);
+        document.getElementById('g3-result-overlay').classList.remove('hidden');
+      }
+    }
+
+    function g3_nextAttempt() {
+      g3_attempt++;
+      g3_attemptDisp.textContent = g3_attempt;
+      document.getElementById('g3-intermission-overlay').classList.add('hidden');
+      g3_setupBoard();
+      g3_startTimer();
+    }
+
+    function g3_resetAll() {
+      g3_attempt = 1; g3_times = [];
+      g3_attemptDisp.textContent = 1;
+      g3_timerDisp.textContent = "0.0";
+      document.getElementById('g3-result-overlay').classList.add('hidden');
+      document.getElementById('g3-intermission-overlay').classList.add('hidden');
+      document.getElementById('g3-start-overlay').classList.remove('hidden');
+      g3_board.querySelectorAll('.g3-btn').forEach(b => b.remove());
+    }
+  </script>
+</body>
+</html>
