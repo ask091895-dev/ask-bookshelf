@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>算数ダンジョン：数式の勇者 PRO</title>
+<style>
+:root{--bg:#0b1020;--panel:#171f38;--panel2:#202b49;--line:#3c4d76;--gold:#ffd34d;--blue:#63b3ff;--green:#5ee28a;--red:#ff6874;--text:#f7f9ff;--muted:#aebbd8}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 50% -10%,#354b7b,#0b1020 60%);color:var(--text);font-family:"Yu Gothic",Meiryo,sans-serif;min-height:100vh}
+button,select{font:inherit}button{cursor:pointer}.app{max-width:1150px;margin:auto;padding:15px}
+header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+h1{font-size:clamp(25px,5vw,42px);margin:0}.sub{color:var(--muted);font-size:14px}.stats{display:flex;gap:7px;flex-wrap:wrap}.badge{background:var(--panel);border:1px solid var(--line);padding:8px 11px;border-radius:13px}
+nav{display:flex;gap:7px;flex-wrap:wrap;margin:15px 0}.navbtn{background:#273453;color:white;padding:10px 13px;border-radius:11px;border:1px solid var(--line)}.navbtn.active{background:#506a9a}
+.screen{display:none}.screen.active{display:block}.card{background:rgba(23,31,56,.96);border:1px solid var(--line);border-radius:20px;padding:18px;box-shadow:0 15px 45px #0005}
+.grid2{display:grid;grid-template-columns:1.2fr .8fr;gap:14px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.hero{text-align:center;padding:28px;min-height:370px;display:flex;flex-direction:column;justify-content:center}.heroart{font-size:82px;filter:drop-shadow(0 7px 0 #050814)}
+label{display:block;color:var(--muted);margin:10px 0 5px}select{width:100%;padding:11px;background:#0d1428;color:white;border:1px solid var(--line);border-radius:10px}
+.primary{background:linear-gradient(#ffe06c,#e5a916);padding:12px 16px;border-radius:12px;font-weight:900;color:#241900;border:0;box-shadow:0 4px #8c6512}.secondary{background:#334364;color:white;padding:10px 14px;border-radius:11px;border:1px solid var(--line)}
+.primary:active{transform:translateY(2px);box-shadow:0 2px #8c6512}.wide{width:100%;margin-top:10px}
+.map{display:grid;grid-template-columns:repeat(5,1fr);gap:9px}.node{min-height:105px;background:#263453;border:2px solid #41527a;border-radius:16px;padding:8px;text-align:center;color:white}.node.locked{filter:grayscale(1);opacity:.45}.node.current{border-color:var(--gold);box-shadow:0 0 18px #ffd34d55}.node.boss{background:#4a2b48}.node .emoji{font-size:38px}.tiny{font-size:12px;color:var(--muted)}
+.progress{height:10px;background:#0b1122;border-radius:8px;overflow:hidden}.progress>div{height:100%;background:var(--gold)}
+.statrow{display:grid;grid-template-columns:1fr 1fr;gap:8px}.stat{background:#202b49;border-radius:12px;padding:10px}.stat b{font-size:20px}
+.battlehead{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center}.bar{height:16px;background:#0a1020;border-radius:12px;overflow:hidden;border:1px solid #415071}.fill{height:100%;background:linear-gradient(90deg,#ff5364,#ff9e4d)}.pfill{background:linear-gradient(90deg,#3edb7b,#9bf2b1)}
+.battlegrid{display:grid;grid-template-columns:1fr 1.5fr 1fr;align-items:center;gap:12px}.fighter{text-align:center}.bigemoji{font-size:90px}.monster{font-size:100px;text-align:center;animation:f 2s infinite}@keyframes f{50%{transform:translateY(-7px)}}
+.q{font-size:clamp(28px,5vw,52px);font-weight:900;text-align:center;margin:10px}.answers{display:grid;grid-template-columns:1fr 1fr;gap:9px}.ans{padding:13px;background:#33476e;border:2px solid transparent;color:white;border-radius:12px;font-weight:900}.ans:hover{border-color:var(--gold)}.ans:disabled{opacity:.55}
+.timer{text-align:center;color:var(--gold);font-size:20px;font-weight:900}.feedback{text-align:center;min-height:40px;padding:7px;font-weight:800}.good{color:var(--green)}.bad{color:var(--red)}.hint{background:#0e172b;border-radius:12px;padding:10px;color:#d9e3fb;display:none}
+.card h2{margin-top:5px}.quest{background:#202b49;border-radius:14px;padding:13px}.quest.done{border-left:5px solid var(--green)}.quest .qtitle{font-weight:900}
+.shopitem,.skill{background:#202b49;border:1px solid var(--line);border-radius:14px;padding:14px}.shopitem button,.skill button{width:100%;padding:9px;border-radius:9px;border:0;background:var(--gold);font-weight:900}.shopitem button:disabled,.skill button:disabled{opacity:.35}
+.result{text-align:center}.resultbig{font-size:80px}.flex{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.space{justify-content:space-between}
+@media(max-width:780px){.grid2,.battlegrid{grid-template-columns:1fr}.grid3{grid-template-columns:1fr 1fr}.map{grid-template-columns:1fr 1fr}.battlehead{grid-template-columns:1fr}.hero{min-height:auto}.bigemoji,.monster{font-size:65px}}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+<div><h1>⚔️ 算数ダンジョン</h1><div class="sub">数式の勇者 PRO ― 学ぶほど強くなるRPG</div></div>
+<div class="stats"><div class="badge">🪙 <span id="coins">0</span></div><div class="badge">⭐ Lv.<span id="lv">1</span></div><div class="badge">✨ XP <span id="xp">0</span></div></div>
+</header>
+<nav>
+<button class="navbtn active" data-screen="home" onclick="go('home')">🏠 ホーム</button>
+<button class="navbtn" data-screen="map" onclick="go('map')">🗺️ マップ</button>
+<button class="navbtn" data-screen="character" onclick="go('character')">🧙 育成</button>
+<button class="navbtn" data-screen="quests" onclick="go('quests')">📜 クエスト</button>
+<button class="navbtn" data-screen="shop" onclick="go('shop')">🛒 ショップ</button>
+</nav>
+
+<section id="home" class="screen active">
+<div class="grid2">
+<div class="card hero"><div class="heroart">🧙‍♂️⚔️🐉</div><h2>算数の力で魔王城を目指せ！</h2>
+<p class="sub">100問以上の問題データから、学年に合った問題を出題。<br>正解でXP・コインを獲得し、勇者を育成しよう！</p>
+<div class="flex" style="justify-content:center"><span>⚔️ バトル</span><span>🗺️ 5エリア</span><span>👑 ボス戦</span><span>🎁 育成</span></div></div>
+<div class="card"><h2>冒険の設定</h2>
+<label>学年</label><select id="grade"><option value="1">小学1年</option><option value="2">小学2年</option><option value="3">小学3年</option><option value="4">小学4年</option><option value="5">小学5年</option><option value="6">小学6年</option></select>
+<label>難易度</label><select id="difficulty"><option value="normal">通常</option><option value="hard">チャレンジ</option></select>
+<button class="primary wide" onclick="newAdventure()">⚔️ 冒険を始める</button>
+<button class="secondary wide" onclick="go('map')">🗺️ マップを見る</button>
+</div></div>
+</section>
+
+<section id="map" class="screen"><div class="card"><div class="flex space"><h2>🗺️ 数式王国のマップ</h2><span class="tiny">エリアをクリアして先へ進もう</span></div><div id="mapGrid" class="map"></div><div id="mapInfo" style="margin-top:14px"></div></div></section>
+
+<section id="battle" class="screen">
+<div class="card">
+<div class="battlehead"><div>🧙‍♂️ 勇者<div class="bar"><div id="php" class="fill pfill"></div></div><span class="tiny">HP <b id="pht">100</b>/100</span></div><b>第<span id="qn">1</span>問</b><div>👾 敵<div class="bar"><div id="ehp" class="fill"></div></div><span class="tiny">HP <b id="eht">100</b>/100</span></div></div>
+<div class="battlegrid"><div class="fighter"><div class="bigemoji">🧙‍♂️</div><div id="powerText">攻撃力 20</div></div>
+<div><div class="monster" id="enemyEmoji">👾</div><div class="tiny" style="text-align:center" id="enemyName">スライム</div>
+<div class="timer">⏱️ <span id="timer">15.0</span>秒</div><div id="question" class="q">問題</div><div id="answers" class="answers"></div><div id="feedback" class="feedback"></div><div id="hint" class="hint"></div></div>
+<div class="fighter"><div class="bigemoji">🛡️</div><div>コンボ <b id="combo">0</b></div><div>クリティカル <b id="crit">0</b></div></div></div>
+</div></section>
+
+<section id="character" class="screen"><div class="grid2"><div class="card"><h2>🧙 数式の勇者</h2><div class="statrow">
+<div class="stat">レベル<br><b id="cLv">1</b></div><div class="stat">XP<br><b id="cXp">0</b></div><div class="stat">攻撃力<br><b id="cAtk">20</b></div><div class="stat">防御力<br><b id="cDef">0</b></div></div>
+<h3>経験値</h3><div class="progress"><div id="xpbar" style="width:0%"></div></div><p class="tiny" id="xpneed"></p></div>
+<div class="card"><h2>✨ スキル</h2><div id="skills" class="grid3"></div></div></div></section>
+
+<section id="quests" class="screen"><div class="card"><h2>📜 デイリー＆育成クエスト</h2><div id="questList"></div></div></section>
+<section id="shop"><div class="card"><h2>🛒 装備ショップ</h2><div id="shopList" class="grid3"></div></div></section>
+
+<section id="result" class="screen"><div class="card result"><div class="resultbig" id="resEmoji">🏆</div><h2 id="resTitle"></h2><p id="resText"></p><div class="flex" style="justify-content:center"><button class="primary" onclick="go('map')">🗺️ マップへ</button><button class="secondary" onclick="newAdventure()">⚔️ 再挑戦</button></div></div></section>
+</div>
+
+<script>
+const monsters=[
+["スライム","👾"],["ウルフ","🐺"],["バット","🦇"],["ゴーレム","🗿"],["オーガ","👹"],["ドラゴン","🐉"]
+];
+const areas=[
+["始まりの草原","🌿",4],["数字の洞窟","⛏️",4],["分数の森","🌲",4],["図形の塔","🏰",4],["魔王城","👑",5]
+];
+let S={grade:1,diff:"normal",area:0,node:0,coins:0,level:1,xp:0,atk:20,def:0,combo:0,crit:0,correct:0,streak:0,skills:{double:false,shield:false,time:false},items:{sword:false,armor:false,amulet:false},timerId:null,current:null,enemy:100,hp:100};
+const save=localStorage.getItem("mathDungeonPro");if(save)Object.assign(S,JSON.parse(save));
+function persist(){localStorage.setItem("mathDungeonPro",JSON.stringify(S));updateHeader()}
+function updateHeader(){coins.textContent=S.coins;lv.textContent=S.level;xp.textContent=S.xp}
+function go(id){document.querySelectorAll(".screen").forEach(x=>x.classList.remove("active"));document.getElementById(id).classList.add("active");document.querySelectorAll(".navbtn").forEach(b=>b.classList.toggle("active",b.dataset.screen===id));if(id==="map")renderMap();if(id==="character")renderCharacter();if(id==="quests")renderQuests();if(id==="shop")renderShop();updateHeader()}
+function xpToNext(){return 100+(S.level-1)*60}
+function gainXP(n){S.xp+=n;while(S.xp>=xpToNext()){S.xp-=xpToNext();S.level++;S.atk+=3;S.def+=1;S.coins+=20}}
+function rnd(a,b){return Math.floor(Math.random()*(b-a+1))+a}
+function qObj(g,area){
+ let a,b,ans,text,hint,type;
+ if(g===1){a=rnd(1,20);b=rnd(1,20);if(Math.random()<.5){ans=a+b;text=`${a} ＋ ${b} ＝ ?`;hint="一の位から、数を順番に足してみよう。"}else{if(b>a)[a,b]=[b,a];ans=a-b;text=`${a} − ${b} ＝ ?`;hint="大きい数から小さい数をひいてみよう。"}}
+ else if(g===2){a=rnd(20,99);b=rnd(10,60);if(Math.random()<.5){ans=a+b;text=`${a} ＋ ${b} ＝ ?`;hint="十の位と一の位に分けて計算。"}else{if(b>a)[a,b]=[b,a];ans=a-b;text=`${a} − ${b} ＝ ?`;hint="一の位で引けないときは十の位から10を借ります。"}}
+ else if(g===3){if(Math.random()<.5){a=rnd(2,9);b=rnd(2,9);ans=a*b;text=`${a} × ${b} ＝ ?`;hint=`${a}を${b}回たすと考えよう。`}else{b=rnd(2,9);ans=rnd(2,9);a=b*ans;text=`${a} ÷ ${b} ＝ ?`;hint=`${a}を${b}個に同じ数ずつ分けます。`}}
+ else if(g===4){let n=rnd(2,9),m=rnd(2,9);ans=n*m;text=`${n} × ${m} ＝ ?`;hint="かけ算の九九を使おう。"}
+ else if(g===5){let d=[2,4,5,10][rnd(0,3)],n=rnd(1,d-1);ans=n/d;text=`${n}/${d} ＋ 0 ＝ ?`;hint="0を足しても分数の大きさは変わりません。"}
+ else{let p=[10,20,25,50][rnd(0,3)],n=rnd(2,8);ans=n*p/100;text=`${p}% の ${n} は？`;hint=`${p}%は${p}/100。${n}にかけてみよう。`}
+ if(area===3&&g>=3){let n=rnd(2,12);ans=n*n;text=`一辺 ${n}cm の正方形の面積は？`;hint="正方形の面積＝一辺×一辺。"}
+ let opts=new Set([String(ans)]);while(opts.size<4){let d=Number.isInteger(ans)?ans+rnd(-9,9):Number((ans+rnd(-3,3)/10).toFixed(2));if(d>=0)opts.add(String(d))}
+ return {text,ans,hint,opts:[...opts].sort(()=>Math.random()-.5)};
+}
+function newAdventure(){S.grade=+grade.value;S.diff=difficulty.value;S.area=0;S.node=0;S.correct=0;S.combo=0;S.crit=0;S.hp=100;go("map");renderMap()}
+function renderMap(){mapGrid.innerHTML="";areas.forEach((a,i)=>{for(let n=0;n<a[2];n++){let locked=i>S.area||i===S.area&&n>S.node;let boss=(i===4&&n===4);let d=document.createElement("button");d.className=`node ${locked?"locked":""} ${boss?"boss":""} ${(i===S.area&&n===S.node)?"current":""}`;d.disabled=locked;d.innerHTML=`<div class="emoji">${boss?"👑":a[1]}</div><b>${a[0]}</b><div class="tiny">${boss?"ボス戦":"Stage "+(n+1)}</div>`;d.onclick=()=>startStage(i,n);mapGrid.appendChild(d)}});mapInfo.innerHTML=`<div class="quest"><b>現在地：</b>${areas[S.area][0]}・ステージ ${S.node+1}<br><span class="tiny">通常ステージは5問、ボス戦は8問。ボスを倒すと次のエリアが開きます。</span></div>`}
+function startStage(a,n){S.area=a;S.node=n;S.hp=100;S.combo=0;S.correct=0;S.crit=0;S.stageQ=0;S.stageTotal=(a===4&&n===4)?8:5;go("battle");nextQ()}
+function nextQ(){clearInterval(S.timerId);if(S.hp<=0){endBattle(false);return}S.stageQ++;if(S.stageQ>S.stageTotal){endBattle(true);return}S.enemy=100;let m=monsters[(S.stageQ+S.node+S.area)%monsters.length];enemyEmoji.textContent=m[1];enemyName.textContent=m[0]+(S.area===4&&S.node===4?"・魔王軍":"");qn.textContent=S.stageQ+"/"+S.stageTotal;S.current=qObj(S.grade,S.area);question.textContent=S.current.text;hint.style.display="none";feedback.textContent="";answers.innerHTML=S.current.opts.map(x=>`<button class="ans" onclick="answer('${x}')">${x}</button>`).join("");S.locked=false;S.time=S.diff==="hard"?10:15;if(S.skills.time)S.time+=3;tick();S.timerId=setInterval(tick,100);bars()}
+function tick(){S.time-=.1;if(S.time<=0){S.time=0;clearInterval(S.timerId);answer(null)}timer.textContent=S.time.toFixed(1)}
+function answer(v){if(S.locked)return;S.locked=true;clearInterval(S.timerId);document.querySelectorAll(".ans").forEach(x=>x.disabled=true);let ok=v!==null&&Math.abs(Number(v)-Number(S.current.ans))<.001;
+if(ok){S.correct++;S.streak++;S.combo++;let crit=S.time>=10;let dmg=S.atk+(crit?15:0);if(S.skills.double&&Math.random()<.25)dmg*=2;S.enemy=Math.max(0,S.enemy-dmg);let gain=crit?18:10;gain+=Math.min(S.combo,5);gainXP(gain);S.coins+=crit?8:4;if(crit)S.crit++;feedback.className="feedback good";feedback.textContent=crit?"💥 クリティカル！":"⚔️ 攻撃成功！";if(S.enemy<=0){setTimeout(nextQ,650)}else{setTimeout(nextQ,650)}
+}else{S.combo=0;S.streak=0;S.hp=Math.max(0,S.hp-Math.max(4,12-S.def-(S.skills.shield?3:0)));feedback.className="feedback bad";feedback.textContent=v===null?"⏰ 時間切れ！":"💢 ミス！";hint.style.display="block";hint.innerHTML=`💡 ${S.current.hint}<br><b>答え：${S.current.ans}</b>`;setTimeout(nextQ,1450)}
+persist();bars()}
+function bars(){php.style.width=S.hp+"%";ehp.style.width=S.enemy+"%";pht.textContent=S.hp;eht.textContent=S.enemy;combo.textContent=S.combo;crit.textContent=S.crit;powerText.textContent="攻撃力 "+S.atk}
+function endBattle(win){clearInterval(S.timerId);if(win){let boss=S.area===4&&S.node===4;let reward=boss?100:25;S.coins+=reward;gainXP(boss?100:35);if(S.area===4&&S.node===4){resEmoji.textContent="👑";resTitle.textContent="魔王を撃破！";resText.innerHTML=`🎉 数式王国を救いました！<br>獲得：🪙${reward} / ✨XP`;}else{resEmoji.textContent="🏆";resTitle.textContent="ステージクリア！";resText.innerHTML=`正解 ${S.correct}/${S.stageTotal} 問　🪙+${reward}　✨XP獲得`;}advance();}else{resEmoji.textContent="💪";resTitle.textContent="勇者は倒れてしまった…";resText.innerHTML=`正解 ${S.correct} 問。ヒントを活用して再挑戦しよう！`}persist();go("result")}
+function advance(){if(S.area===4&&S.node===4)return;if(S.node+1<areas[S.area][2])S.node++;else if(S.area+1<areas.length){S.area++;S.node=0}}
+const skills=[["double","⚡ ダブルアタック","25%で攻撃2倍",60],["shield","🛡️ 守護の加護","受けるダメージ-3",50],["time","⏳ 時間の魔法","制限時間+3秒",70]];
+function renderCharacter(){cLv.textContent=S.level;cXp.textContent=S.xp;cAtk.textContent=S.atk;cDef.textContent=S.def;xpbar.style.width=(S.xp/xpToNext()*100)+"%";xpneed.textContent=`次のレベルまで ${xpToNext()-S.xp} XP`;skills.innerHTML=skills.map(x=>`<div class="skill"><b>${x[1]}</b><p class="tiny">${x[2]}</p><button ${S.skills[x[0]]||S.coins<x[3]?"disabled":""} onclick="buySkill('${x[0]}',${x[3]})">${S.skills[x[0]]?"習得済み":"🪙 "+x[3]}</button></div>`).join("")}
+function buySkill(id,c){if(S.skills[id]||S.coins<c)return;S.coins-=c;S.skills[id]=true;persist();renderCharacter()}
+const items=[["sword","⚔️ ミスリルソード","攻撃力+8",70],["armor","🛡️ 鉄壁アーマー","防御力+4",70],["amulet","🔮 勇者のお守り","正解時コイン+2",80]];
+function renderShop(){shopList.innerHTML=items.map(x=>`<div class="shopitem"><div style="font-size:42px">${x[1].split(" ")[0]}</div><h3>${x[1].substring(3)}</h3><p class="tiny">${x[2]}</p><button ${S.items[x[0]]||S.coins<x[3]?"disabled":""} onclick="buyItem('${x[0]}',${x[3]})">${S.items[x[0]]?"装備中":"🪙 "+x[3]+"で購入"}</button></div>`).join("")}
+function buyItem(id,c){if(S.items[id]||S.coins<c)return;S.coins-=c;S.items[id]=true;if(id==="sword")S.atk+=8;if(id==="armor")S.def+=4;persist();renderShop()}
+function renderQuests(){let quests=[["毎日の冒険","ステージを1回クリア",S.node>0||S.area>0,30],["算数修行","10問正解する",S.correct>=10,40],["コンボ職人","5コンボを達成",S.combo>=5,50],["ボスハンター","魔王城のボスを撃破",S.area===4&&S.node===4,100]];questList.innerHTML=quests.map(q=>`<div class="quest ${q[2]?"done":""}" style="margin:8px 0"><div class="flex space"><span><span class="qtitle">${q[2]?"✅":"📜"} ${q[0]}</span><br><span class="tiny">${q[1]}</span></span><b>🪙 ${q[3]}</b></div></div>`).join("")}
+updateHeader();renderMap();
+</script>
+</body>
+</html>
